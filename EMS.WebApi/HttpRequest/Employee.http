@@ -1,4 +1,5 @@
-@EMS.WebApi_HostAddress = http://localhost:5126
+# Replace with your local server url
+@EMS.WebApi_HostAddress = http://localhost:5126 
 
 GET {{EMS.WebApi_HostAddress}}/api/Employees
 Accept: application/json
