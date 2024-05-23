@@ -37,21 +37,24 @@ namespace EMS.WebApi.Controllers
         [HttpPost()]
         public ActionResult Create(Employee employee)
         {
-            List<string> errorMessages = new();
             if (employee.ExistsWithEmail())
             {
-                errorMessages.Add("Employee already exists with email");
+                ModelState.AddModelError("Email", "Employee already exists with email.");
             }
             if (employee.FirstName == employee.LastName)
             {
-                errorMessages.Add("FirstName and LastName should be different");
+                ModelState.AddModelError("FirstName", "FirstName and LastName should be different.");
             }
-            if (errorMessages.Count == 0)
+
+            if (ModelState.IsValid)
             {
                 employee.Create();
                 return CreatedAtAction(nameof(Get), new { id = employee.Id }, employee);
             }
-            return BadRequest(errorMessages);
+
+            var validation = new ValidationProblemDetails(ModelState);
+            validation.Type = "https://tools.ietf.org/html/rfc9110#section-15.5.1";
+            return BadRequest(validation);
         }
 
         [HttpPut("{id}")]

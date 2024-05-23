@@ -195,14 +195,14 @@ namespace EMS.CoreLibrary.Models
             //Create Command object with SQL command
             SqlCommand command = new SqlCommand();
             command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = $@"  UPDATE Employee
-                                SET FirstName = '{FirstName}',
-                                    LastName = '{LastName}',
-                                    Email = '{Email}',
-                                    Active = '{Active}'
-                                WHERE id = {Id};";
-            command.CommandText = query;
+            command.CommandType = CommandType.StoredProcedure;
+            command.CommandText = "Employee_Update_Details"; // Stored Procedure Name. Refer Database.sql file
+
+            command.Parameters.AddWithValue("@Id", Id);
+            command.Parameters.AddWithValue("@FirstName", FirstName);
+            command.Parameters.AddWithValue("@LastName", LastName);
+            command.Parameters.AddWithValue("@Email", Email);
+            command.Parameters.AddWithValue("@Active", Active);
 
             //Open the database connection 
             connection.Open();
