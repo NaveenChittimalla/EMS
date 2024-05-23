@@ -1,0 +1,40 @@
+@EMS.WebApi_HostAddress = http://localhost:5126
+
+GET {{EMS.WebApi_HostAddress}}/api/Employees
+Accept: application/json
+
+###
+
+POST {{EMS.WebApi_HostAddress}}/api/employees
+Content-Type: application/json
+
+{
+  "firstName":"Naveen",
+  "lastName":"CCCCC",
+  "email":"naveen.c@gmail.com",
+  "active":true
+}
+
+###
+
+GET {{EMS.WebApi_HostAddress}}/api/employees/1
+Accept: application/json
+
+###
+
+PUT {{EMS.WebApi_HostAddress}}/api/employees/1
+Content-Type: application/json
+
+{
+  "firstName":"Naveen",
+  "lastName":"CCCCCH",
+  "email":"naveen.ch@tarantula.net",
+  "active":true
+}
+
+###
+
+DELETE {{EMS.WebApi_HostAddress}}/api/employees/1
+Content-Type: application/json
+
+###
