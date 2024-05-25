@@ -8,18 +8,18 @@ namespace EMS.WebApi.Controllers
     [ApiController]
     public class EmployeesV3Controller : ControllerBase
     {
-        private readonly EmployeeSqlDbRepository _employeeSqlDbRepository;
+        private readonly EmployeeSqlDbRepository _employeeDbRepository;
 
         public EmployeesV3Controller()
         {
-            _employeeSqlDbRepository = new EmployeeSqlDbRepository();   
+            _employeeDbRepository = new EmployeeSqlDbRepository();   
         }
 
         // api/v3/employees -- All Employees
         [HttpGet()]
         public ActionResult<IEnumerable<EmployeeV3>> GetAll()
         {
-            IEnumerable<EmployeeV3> employeeList = _employeeSqlDbRepository.GetAll();
+            IEnumerable<EmployeeV3> employeeList = _employeeDbRepository.GetAll();
             return Ok(employeeList);
         }
 
@@ -27,7 +27,7 @@ namespace EMS.WebApi.Controllers
         [HttpGet("{id}")]
         public ActionResult<EmployeeV3> Get(int id)
         {
-            EmployeeV3 employee = _employeeSqlDbRepository.GetById(id);
+            EmployeeV3 employee = _employeeDbRepository.GetById(id);
 
             if (employee == null || string.IsNullOrEmpty(employee.EmployeeCode))
             {
@@ -41,7 +41,7 @@ namespace EMS.WebApi.Controllers
         [HttpPost()]
         public ActionResult CreateEmployee(EmployeeV3 employee)
         {
-            if (_employeeSqlDbRepository.ExistsWithEmail(employee.Email))
+            if (_employeeDbRepository.ExistsWithEmail(employee.Email))
             {
                 ModelState.AddModelError("Email", "Employee already exists with email.");
             }
@@ -52,7 +52,7 @@ namespace EMS.WebApi.Controllers
 
             if(ModelState.IsValid)
             {
-                _employeeSqlDbRepository.Create(employee);
+                _employeeDbRepository.Create(employee);
                 return CreatedAtAction(nameof(Get), new { id = employee.Id }, employee);
             }
 
@@ -65,9 +65,9 @@ namespace EMS.WebApi.Controllers
         [HttpPut("{id}")]
         public ActionResult UpdateEmployee(int id, EmployeeV3 employee)
         {
-            if (_employeeSqlDbRepository.Exists(id))
+            if (_employeeDbRepository.Exists(id))
             {
-                _employeeSqlDbRepository.Update(id, employee);
+                _employeeDbRepository.Update(id, employee);
                 return NoContent();
             }
             return NotFound();
@@ -77,9 +77,9 @@ namespace EMS.WebApi.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteEmployee(int id)
         {
-            if (_employeeSqlDbRepository.Exists(id))
+            if (_employeeDbRepository.Exists(id))
             {
-                _employeeSqlDbRepository.Delete(id);
+                _employeeDbRepository.Delete(id);
                 return NoContent();
             }
             return NotFound();

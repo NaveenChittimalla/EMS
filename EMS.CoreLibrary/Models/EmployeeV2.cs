@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Linq.Expressions;
 
 namespace EMS.CoreLibrary.Models
 {
@@ -35,15 +36,18 @@ namespace EMS.CoreLibrary.Models
         /// <returns></returns>
         public static bool Create(EmployeeV2 employee)
         {
+            bool result;
             //Create Connection object
             SqlConnection connection = new SqlConnection();
-            connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
+            try
+            {
+                connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
 
-            //Create Command object with SQL command
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = @"INSERT INTO Employee (FirstName, LastName, Email, Active) 
+                //Create Command object with SQL command
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.Text;
+                string query = @"INSERT INTO Employee (FirstName, LastName, Email, Active) 
                                 values (@FirstName, @LastName, @Email, @Active);
 
                                 DECLARE @NewEmployeeId INT
@@ -54,27 +58,40 @@ namespace EMS.CoreLibrary.Models
                                 WHERE id = @NewEmployeeId;
                                 
                                 SELECT @NewEmployeeId";
-            command.CommandText = query;
+                command.CommandText = query;
 
-            command.Parameters.AddWithValue("@FirstName", employee.FirstName);
-            command.Parameters.AddWithValue("@LastName", employee.LastName);
-            command.Parameters.AddWithValue("@Email", employee.Email);
-            command.Parameters.AddWithValue("@Active", employee.Active);
+                command.Parameters.AddWithValue("@FirstName", employee.FirstName);
+                command.Parameters.AddWithValue("@LastName", employee.LastName);
+                command.Parameters.AddWithValue("@Email", employee.Email);
+                command.Parameters.AddWithValue("@Active", employee.Active);
 
-            //Open the database connection 
-            connection.Open();
+                //Open the database connection 
+                connection.Open();
 
-            //Execute Command
-            int newEmployeeId = Convert.ToInt32(command.ExecuteScalar());
+                //Execute Command
+                int newEmployeeId = Convert.ToInt32(command.ExecuteScalar());
+                result = newEmployeeId > 0;
 
-            //Close the database connection
-            connection.Close();
+                //Close the database connection
+                connection.Close();
 
-            //Set the id and employeecode to employee parameter of this method 
-            employee.Id = newEmployeeId;
-            employee.EmployeeCode = $"EMS{employee.Id}";
+                //Set the id and employeecode to employee parameter of this method 
+                employee.Id = newEmployeeId;
+                employee.EmployeeCode = $"EMS{employee.Id}";
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally // This block will execute even when exception occured
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
 
-            return newEmployeeId > 0;
+            return result;
         }
 
         /// <summary>
@@ -84,14 +101,17 @@ namespace EMS.CoreLibrary.Models
         {
             EmployeeV2 employee = null;
 
-            //open Connection
+            //Create Connection object
             SqlConnection connection = new SqlConnection();
             connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
 
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = $@"SELECT
+            try
+            {
+                //Create Command object
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.Text;
+                string query = $@"SELECT
                                 Id,
                                 EmployeeCode,
                                 FirstName,
@@ -100,28 +120,40 @@ namespace EMS.CoreLibrary.Models
                                 Active
                             FROM Employee
                             WHERE id=@Id";
-            command.CommandText = query;
+                command.CommandText = query;
 
-            command.Parameters.AddWithValue("@Id", id);
+                command.Parameters.AddWithValue("@Id", id);
 
-            connection.Open();
+                //Open Connection
+                connection.Open();
 
-            SqlDataReader dataReader = command.ExecuteReader();
+                SqlDataReader dataReader = command.ExecuteReader();
 
-            if (dataReader.Read())
-            {
-                employee = new EmployeeV2();
-                employee.Id = Convert.ToInt32(dataReader.GetValue("Id"));
-                employee.EmployeeCode = dataReader.GetValue("EmployeeCode").ToString();
-                employee.FirstName = dataReader.GetValue("FirstName").ToString();
-                employee.LastName = dataReader.GetValue("LastName").ToString();
-                employee.Email = dataReader.GetValue("Email").ToString();
-                employee.Active = Convert.ToBoolean(dataReader.GetValue("Active"));
+                if (dataReader.Read())
+                {
+                    employee = new EmployeeV2();
+                    employee.Id = Convert.ToInt32(dataReader.GetValue("Id"));
+                    employee.EmployeeCode = dataReader.GetValue("EmployeeCode").ToString();
+                    employee.FirstName = dataReader.GetValue("FirstName").ToString();
+                    employee.LastName = dataReader.GetValue("LastName").ToString();
+                    employee.Email = dataReader.GetValue("Email").ToString();
+                    employee.Active = Convert.ToBoolean(dataReader.GetValue("Active"));
+                }
+
+                dataReader.Close();
+                connection.Close();
             }
-
-            dataReader.Close();
-            connection.Close();
-
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return employee;
         }
 
@@ -131,14 +163,15 @@ namespace EMS.CoreLibrary.Models
         {
             List<EmployeeV2> employeeList = new List<EmployeeV2>();
 
-            //open Connection
+            //Create Connection object
             SqlConnection connection = new SqlConnection();
             connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
-
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = @"SELECT 
+            try
+            {
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.Text;
+                string query = @"SELECT 
                                 Id,
                                 EmployeeCode,
                                 FirstName,
@@ -146,51 +179,62 @@ namespace EMS.CoreLibrary.Models
                                 Email,
                                 Active
                             FROM dbo.Employee";
-            command.CommandText = query;
+                command.CommandText = query;
 
-            connection.Open();
+                connection.Open();
 
-            ///Connection-Oriented approach
-            //SqlDataReader dataReader = command.ExecuteReader();
+                ///Connection-Oriented approach
+                //SqlDataReader dataReader = command.ExecuteReader();
 
-            //while (dataReader.Read())
-            //{
-            //    EmployeeV2 employee = new EmployeeV2();
-            //    employee.Id = Convert.ToInt32(dataReader.GetValue("Id"));
-            //    employee.EmployeeCode = dataReader.GetValue("EmployeeCode").ToString();
-            //    employee.FirstName = dataReader.GetValue("FirstName").ToString();
-            //    employee.LastName = dataReader.GetValue("LastName").ToString();
-            //    employee.Email = dataReader.GetValue("Email").ToString();
-            //    employee.Active = Convert.ToBoolean(dataReader.GetValue("Active"));
+                //while (dataReader.Read())
+                //{
+                //    EmployeeV2 employee = new EmployeeV2();
+                //    employee.Id = Convert.ToInt32(dataReader.GetValue("Id"));
+                //    employee.EmployeeCode = dataReader.GetValue("EmployeeCode").ToString();
+                //    employee.FirstName = dataReader.GetValue("FirstName").ToString();
+                //    employee.LastName = dataReader.GetValue("LastName").ToString();
+                //    employee.Email = dataReader.GetValue("Email").ToString();
+                //    employee.Active = Convert.ToBoolean(dataReader.GetValue("Active"));
 
-            //    employeeList.Add(employee);
-            //}
+                //    employeeList.Add(employee);
+                //}
 
-            //dataReader.Close();
-            //connection.Close();
+                //dataReader.Close();
+                //connection.Close();
 
-            ///Disconnected-Oriented approach
-            DataSet dsEmployee = new();
-            SqlDataAdapter sd = new SqlDataAdapter(command);
-            sd.Fill(dsEmployee);
-            connection.Close();
+                ///Disconnected-Oriented approach
+                DataSet dsEmployee = new();
+                SqlDataAdapter sd = new SqlDataAdapter(command);
+                sd.Fill(dsEmployee);
+                connection.Close();
 
-            if (dsEmployee != null && dsEmployee.Tables.Count == 1)
-            {
-                foreach (DataRow dr in dsEmployee.Tables[0].Rows)
+                if (dsEmployee != null && dsEmployee.Tables.Count == 1)
                 {
-                    EmployeeV2 employee = new EmployeeV2();
-                    employee.Id = Convert.ToInt32(dr.Field<int>("Id"));
-                    employee.EmployeeCode = dr.Field<string>("EmployeeCode").ToString();
-                    employee.FirstName = dr.Field<string>("FirstName").ToString();
-                    employee.LastName = dr.Field<string>("LastName").ToString();
-                    employee.Email = dr.Field<string>("Email").ToString();
-                    employee.Active = dr.Field<bool>("Active");
+                    foreach (DataRow dr in dsEmployee.Tables[0].Rows)
+                    {
+                        EmployeeV2 employee = new EmployeeV2();
+                        employee.Id = Convert.ToInt32(dr.Field<int>("Id"));
+                        employee.EmployeeCode = dr.Field<string>("EmployeeCode").ToString();
+                        employee.FirstName = dr.Field<string>("FirstName").ToString();
+                        employee.LastName = dr.Field<string>("LastName").ToString();
+                        employee.Email = dr.Field<string>("Email").ToString();
+                        employee.Active = dr.Field<bool>("Active");
 
-                    employeeList.Add(employee);
+                        employeeList.Add(employee);
+                    }
                 }
             }
-
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
             return employeeList;
         }
 
@@ -200,63 +244,91 @@ namespace EMS.CoreLibrary.Models
         /// <returns></returns>
         public static bool Update(int id, EmployeeV2 employee)
         {
-
+            bool result;
             //Create Connection object
             SqlConnection connection = new SqlConnection();
             connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
+            try
+            {
+                //Create Command object with SQL command
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.StoredProcedure;
+                command.CommandText = "Employee_Update_Details"; // Stored Procedure Name. Refer Database.sql file
 
-            //Create Command object with SQL command
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.StoredProcedure;
-            command.CommandText = "Employee_Update_Details"; // Stored Procedure Name. Refer Database.sql file
-            
-            employee.Id = id;
-            command.Parameters.AddWithValue("@Id", (employee.Id == 0 ? id : employee.Id));
-            command.Parameters.AddWithValue("@FirstName", employee.FirstName);
-            command.Parameters.AddWithValue("@LastName", employee.LastName);
-            command.Parameters.AddWithValue("@Email", employee.Email);
-            command.Parameters.AddWithValue("@Active", employee.Active);
+                employee.Id = id;
+                command.Parameters.AddWithValue("@Id", (employee.Id == 0 ? id : employee.Id));
+                command.Parameters.AddWithValue("@FirstName", employee.FirstName);
+                command.Parameters.AddWithValue("@LastName", employee.LastName);
+                command.Parameters.AddWithValue("@Email", employee.Email);
+                command.Parameters.AddWithValue("@Active", employee.Active);
 
-            //Open the database connection 
-            connection.Open();
+                //Open the database connection 
+                connection.Open();
 
-            //Execute Command
-            int recordCount = command.ExecuteNonQuery();
+                //Execute Command
+                int recordCount = command.ExecuteNonQuery();
+                result = recordCount > 0;
+                //Close the database connection
+                connection.Close();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
 
-            //Close the database connection
-            connection.Close();
-
-            return recordCount > 0;
+            return result;
         }
 
         public static bool Delete(int id)
         {
+            bool result;
             //Create Connection object
             SqlConnection connection = new SqlConnection();
             connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
+            try
+            {
 
-            //Create Command object with SQL command
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = $@"  DELETE 
+
+                //Create Command object with SQL command
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.Text;
+                string query = $@"  DELETE 
                                 FROM Employee
                                 WHERE id = @Id";
-            command.CommandText = query;
+                command.CommandText = query;
 
-            command.Parameters.AddWithValue("@Id", id);
+                command.Parameters.AddWithValue("@Id", id);
 
-            //Open the database connection 
-            connection.Open();
+                //Open the database connection 
+                connection.Open();
 
-            //Execute Command
-            int recordCount = command.ExecuteNonQuery();
-
-            //Close the database connection
-            connection.Close();
-
-            return recordCount > 0;
+                //Execute Command
+                int recordCount = command.ExecuteNonQuery();
+                result = recordCount > 0;
+                //Close the database connection
+                connection.Close();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return result;
         }
 
         /// <summary>
@@ -264,25 +336,40 @@ namespace EMS.CoreLibrary.Models
         /// </summary>
         public static bool Exists(int employeeId)
         {
-            //open Connection
+            bool result;
+            //Create Connection object
             SqlConnection connection = new SqlConnection();
             connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
-
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = $@"SELECT TOP 1 Id
+            try
+            {
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.Text;
+                string query = $@"SELECT TOP 1 Id
                             FROM Employee
                             WHERE id=@Id";
-            command.CommandText = query;
-            command.Parameters.AddWithValue("@Id", employeeId);
+                command.CommandText = query;
+                command.Parameters.AddWithValue("@Id", employeeId);
 
-            connection.Open();
+                connection.Open();
 
-            var id = command.ExecuteScalar();
-            connection.Close();
+                var id = command.ExecuteScalar();
+                result = id is not null && Convert.ToInt32(id) > 0;
 
-            return id is not null && Convert.ToInt32(id) > 0;
+                connection.Close();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return result;
         }
 
         /// <summary>
@@ -290,25 +377,40 @@ namespace EMS.CoreLibrary.Models
         /// </summary>
         public static bool ExistsWithEmail(string email)
         {
-            //open Connection
+            bool result;
+            //Create Connection object
             SqlConnection connection = new SqlConnection();
             connection.ConnectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
-
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandType = CommandType.Text;
-            string query = $@"SELECT TOP 1 Id
+            try
+            {
+                SqlCommand command = new SqlCommand();
+                command.Connection = connection;
+                command.CommandType = CommandType.Text;
+                string query = $@"SELECT TOP 1 Id
                             FROM Employee
                             WHERE Email=@Email";
-            command.CommandText = query;
-            command.Parameters.AddWithValue("@Email", email);
+                command.CommandText = query;
+                command.Parameters.AddWithValue("@Email", email);
 
-            connection.Open();
+                connection.Open();
 
-            var id = command.ExecuteScalar();
-            connection.Close();
+                var id = command.ExecuteScalar();
+                result = id is not null && Convert.ToInt32(id) > 0;
 
-            return id is not null && Convert.ToInt32(id) > 0;
+                connection.Close();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+            finally
+            {
+                if (connection?.State == ConnectionState.Open)
+                {
+                    connection.Close();
+                }
+            }
+            return result;
         }
 
         public static string Export(string filePath = "")
