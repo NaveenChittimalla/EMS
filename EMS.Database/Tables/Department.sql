@@ -1,0 +1,7 @@
+﻿CREATE TABLE [dbo].[Department]
+(
+	[Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+	[Code] NVARCHAR(100) NULL,
+	[Name] NVARCHAR(250) NOT NULL,
+	[Active] BIT DEFAULT(1)
+)
