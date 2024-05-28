@@ -60,16 +60,25 @@
     <Folder Include="Views" />
     <Folder Include="StroredProcedures" />
     <Folder Include="Functions" />
+    <Folder Include="Scripts" />
+    <Folder Include="Employee" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\Employee.sql" />
     <Build Include="Tables\Department.sql" />
-    <Build Include="StroredProcedures\Employee_Update.sql" />
-    <Build Include="StroredProcedures\Employee_Insert.sql" />
-    <Build Include="Functions\FN_Employee_Generate_Code.sql" />
-    <Build Include="StroredProcedures\Employee_DeleteById.sql" />
-    <Build Include="StroredProcedures\Employee_GetById.sql" />
-    <Build Include="StroredProcedures\Employee_GetAll.sql" />
+    <None Include="Scripts\DB.Crud.SP.Generator.sql" />
+    <Build Include="Employee\FN.FN_Employee_Generate_Code.sql" />
+    <Build Include="Employee\Proc.Employee_DeleteById.sql" />
+    <Build Include="Employee\Proc.Employee_GetAll.sql" />
+    <Build Include="Employee\Proc.Employee_GetById.sql" />
+    <Build Include="Employee\Proc.Employee_Insert.sql" />
+    <Build Include="Employee\Proc.Employee_Update.sql" />
+    <Build Include="Employee\Table.Employee.sql" />
+    <Build Include="StroredProcedures\Proc.Department_DeleteById.sql" />
+    <Build Include="StroredProcedures\Proc.Department_GetAll.sql" />
+    <Build Include="StroredProcedures\Proc.Department_GetById.sql" />
+    <Build Include="StroredProcedures\Proc.Department_Insert.sql" />
+    <Build Include="StroredProcedures\Proc.Department_Update.sql" />
+    <Build Include="Functions\FN.FN_Department_Generate_Code.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="EMS.Database.publish.xml" />
