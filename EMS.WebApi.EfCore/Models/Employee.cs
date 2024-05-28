@@ -2,10 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace EMS.WebApi.EfCore.Models;
-public class Employee
+public class Employee : BaseModel
 {
-    public int Id { get; set; }
-    
     [MaxLength(255)]
     public string? Code { get; set; }
     
