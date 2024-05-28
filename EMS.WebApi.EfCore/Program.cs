@@ -1,10 +1,6 @@
-using Azure.Core;
 using EMS.WebApi.EfCore.Data;
-using EMS.WebApi.EfCore.Models;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using EMS.WebApi.EfCore.Repositories;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +11,8 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddDbContext<EmsDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("EmsEfConnectionString")));
+
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 var app = builder.Build();
 

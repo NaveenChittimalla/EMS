@@ -1,26 +1,27 @@
 ﻿using EMS.WebApi.EfCore.Data;
 using EMS.WebApi.EfCore.Models;
 using EMS.WebApi.EfCore.ObjectResults;
+using EMS.WebApi.EfCore.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EMS.WebApi.EfCore.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/v2/employees")]
 [ApiController]
-public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
+public class EmployeesV2Controller(IEmployeeRepository employeeRepository) : ControllerBase
 {
     [HttpGet("")]
     public ActionResult<IEnumerable<Employee>> GetAll()
     {
-        var employeeList = emsDbContext.Employee.ToList();
+        var employeeList = employeeRepository.GetAll();
         return Ok(employeeList);
     }
 
     [HttpGet("{id}")]
     public ActionResult<Employee> Get(int id)
     {
-        var employee = emsDbContext.Employee.Find(id);
+        var employee = employeeRepository.GetById(id);
         if (employee is null)
         {
             return NotFound();
@@ -32,7 +33,7 @@ public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
     //[ModelValidationActionFilter]//automatic model validation with [ApiController] attribute on controller
     public ActionResult Post(Employee employee) //[FromBody] automatic model binding with [ApiController] attribute on controller
     {
-        if (emsDbContext.Employee.Any(e => e.Email.Equals(employee.Email))) 
+        if (employeeRepository.Exists(e => e.Email.Equals(employee.Email))) 
         {
             ModelState.AddModelError("Email", "Employee already exists with this email");
         }
@@ -40,15 +41,12 @@ public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
         {
             return new BadRequestProblemValidationObjectResult(ModelState);
         }
-
-        emsDbContext.Employee.Add(employee);
-        int rowsEffected = emsDbContext.SaveChanges();
+        
+        int rowsEffected = employeeRepository.Create(employee);
         if (rowsEffected > 0)
         {
             employee.Code = "EMS" + employee.Id;
-            emsDbContext.Employee
-                       .Where(e => e.Id == employee.Id)
-                       .ExecuteUpdate(a => a.SetProperty(e => e.Code, e => employee.Code));
+            employeeRepository.UpdateCode(employee);
         }
         return CreatedAtAction(nameof(Get), new { id = employee.Id }, employee);
     }
@@ -65,25 +63,23 @@ public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
             return new BadRequestProblemValidationObjectResult(ModelState);
         }
 
-        if (!emsDbContext.Employee.Any(e => e.Id.Equals(id)))
+        if (!employeeRepository.Exists(e => e.Id.Equals(id)))
         {
             return NotFound();
         }
-        emsDbContext.Entry<Employee>(employee).State = EntityState.Modified;
-        emsDbContext.SaveChanges();
+        employeeRepository.Update(employee);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public ActionResult Delete(int id)
     {
-        Employee employee = emsDbContext.Employee.Find(id);
+        Employee employee = employeeRepository.GetById(id);
         if (employee is null)
         {
             return NotFound();
         }
-        emsDbContext.Employee.Remove(employee);
-        emsDbContext.SaveChanges();
+        employeeRepository.Delete(employee);
         return NoContent();
     }
 }

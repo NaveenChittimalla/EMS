@@ -1,0 +1,43 @@
+# Replace with your local server url
+@EMS.WebApi_HostAddress = {{HostAddress}} 
+
+GET {{EMS.WebApi_HostAddress}}/api/v3/Employees
+Accept: application/json
+
+###
+
+POST {{EMS.WebApi_HostAddress}}/api/v3/employees
+Content-Type: application/json
+
+{
+  "firstName":"Abhiram",
+  "lastName":"AAAAA",
+  "email":"Abhiram.p@mail.com",
+  "active":true
+}
+
+###
+
+GET {{EMS.WebApi_HostAddress}}/api/v3/employees/3
+Accept: application/json
+
+###
+
+PUT {{EMS.WebApi_HostAddress}}/api/v3/employees/3
+Content-Type: application/json
+
+{
+  "id": 3,
+  "code":"EMS3",
+  "firstName":"Abhiram",
+  "lastName":"AAAAAB",
+  "email":"Abhiram.p@mail.com",
+  "active":true
+}
+
+###
+
+DELETE {{EMS.WebApi_HostAddress}}/api/v3/employees/3
+Content-Type: application/json
+
+###
