@@ -2,6 +2,7 @@
 using EMS.WebApi.EfCore.Models;
 using EMS.WebApi.EfCore.ObjectResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 
 namespace EMS.WebApi.EfCore.Controllers;
@@ -10,6 +11,7 @@ namespace EMS.WebApi.EfCore.Controllers;
 [ApiController]
 public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
 {
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [HttpGet("")]
     public ActionResult<IEnumerable<Employee>> GetAll()
     {
@@ -17,6 +19,13 @@ public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
         return Ok(employeeList);
     }
 
+    /// <summary>
+    /// Get an employee by specified Id.
+    /// </summary>
+    /// <param name="id">Employee Id</param>
+    /// <returns></returns>
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}")]
     public ActionResult<Employee> Get(int id)
     {
@@ -28,11 +37,13 @@ public class EmployeesController(EmsDbContext emsDbContext) : ControllerBase
         return Ok(employee);
     }
 
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Employee))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
     [HttpPost("")]
     //[ModelValidationActionFilter]//automatic model validation with [ApiController] attribute on controller
     public ActionResult Post(Employee employee) //[FromBody] automatic model binding with [ApiController] attribute on controller
     {
-        if (emsDbContext.Employee.Any(e => e.Email.Equals(employee.Email))) 
+        if (emsDbContext.Employee.Any(e => e.Email.Equals(employee.Email)))
         {
             ModelState.AddModelError("Email", "Employee already exists with this email");
         }
