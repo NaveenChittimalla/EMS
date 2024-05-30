@@ -3,6 +3,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace EMS.CoreLibrary.Models
 {
@@ -28,6 +29,7 @@ namespace EMS.CoreLibrary.Models
         public bool? Active { get; set; }
 
         #region Methods
+
         /// <summary>
         /// static methods can be called directly by class without creating an object. 
         /// Employee.Create(new Employee());

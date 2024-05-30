@@ -5,28 +5,25 @@ using System.Data;
 
 namespace EMS.CoreLibrary.Repositories
 {
-    public class EmployeeSqlDbRepository
+    public class DepartmentSqlDbRepository
     {
         private readonly string _connectionString;
 
-        public EmployeeSqlDbRepository()
+        public DepartmentSqlDbRepository()
         {
             _connectionString = "Data Source=LocalHost\\SQLEXPRESS; Initial Catalog=EMS; Integrated Security=True;Encrypt=False;TrustServerCertificate=True;";
         }
 
-        public bool Create(EmployeeV3 employee)
+        public bool Create(Department department)
         {
             IDictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("FirstName", employee.FirstName);
-            parameters.Add("LastName", employee.LastName);
-            parameters.Add("Email", employee.Email);
-            parameters.Add("Active", employee.Active);
+            parameters.Add("Name", department.Name);
+            parameters.Add("Active", department.Active);
 
-            int newEmployeeId = Convert.ToInt32(SqlHelper.ExecuteScalar(_connectionString, "Employee_Insert", parameters));
+            int newId = Convert.ToInt32(SqlHelper.ExecuteScalar(_connectionString, "Department_Insert", parameters));
             //Set the id and employeecode to employee parameter of this method 
-            employee.Id = newEmployeeId;
-            employee.EmployeeCode = $"EMS{employee.Id}";
-            return newEmployeeId > 0;
+            department.Id = newId;
+            return newId > 0;
 
             #region using statement approach
             /*
@@ -70,28 +67,26 @@ namespace EMS.CoreLibrary.Repositories
         /// <summary>
         /// Gets the employee details by Id
         /// </summary>
-        public EmployeeV3 GetById(int id)
+        public Department GetById(int id)
         {
-            EmployeeV3 employee = null;
+            Department department = null;
 
             IDictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("Id", id);
 
-            DataSet dsEmployee = SqlHelper.ExecuteDataSet(_connectionString, "Employee_GetById", parameters);
+            DataSet dsDepartment = SqlHelper.ExecuteDataSet(_connectionString, "Department_GetById", parameters);
 
-            if (dsEmployee?.Tables.Count > 0
-                && dsEmployee?.Tables[0].Rows.Count > 0)
+            if (dsDepartment?.Tables.Count > 0
+                && dsDepartment?.Tables[0].Rows.Count > 0)
             {
-                DataRow dr = dsEmployee.Tables[0].Rows[0];
-                employee = new EmployeeV3();
-                employee.Id = Convert.ToInt32(dr.Field<int>("Id"));
-                employee.EmployeeCode = dr.Field<string>("EmployeeCode").ToString();
-                employee.FirstName = dr.Field<string>("FirstName").ToString();
-                employee.LastName = dr.Field<string>("LastName").ToString();
-                employee.Email = dr.Field<string>("Email").ToString();
-                employee.Active = dr.Field<bool>("Active");
+                DataRow dr = dsDepartment.Tables[0].Rows[0];
+                department = new Department();
+                department.Id = Convert.ToInt32(dr.Field<int>("Id"));
+                department.Code = dr.Field<string>("Code").ToString();
+                department.Name = dr.Field<string>("Name").ToString();
+                department.Active = dr.Field<bool>("Active");
             }
-            return employee;
+            return department;
 
             #region using statementApproach
             /*
@@ -135,29 +130,27 @@ namespace EMS.CoreLibrary.Repositories
 
         /// Gets all the employee details
         /// </summary>
-        public IEnumerable<EmployeeV3> GetAll()
+        public IEnumerable<Department> GetAll()
         {
-            List<EmployeeV3> employeeList = new List<EmployeeV3>();
+            List<Department> departmentList = new List<Department>();
 
-            DataSet dsEmployee = SqlHelper.ExecuteDataSet(_connectionString, "Employee_GetAll", null); //pass null when no parameters
+            DataSet dsDepartment = SqlHelper.ExecuteDataSet(_connectionString, "Department_GetAll", null); //pass null when no parameters
 
-            if (dsEmployee != null && dsEmployee.Tables.Count == 1)
+            if (dsDepartment != null && dsDepartment.Tables.Count == 1)
             {
-                foreach (DataRow dr in dsEmployee.Tables[0].Rows)
+                foreach (DataRow dr in dsDepartment.Tables[0].Rows)
                 {
-                    EmployeeV3 employee = new EmployeeV3();
-                    employee.Id = Convert.ToInt32(dr.Field<int>("Id"));
-                    employee.EmployeeCode = dr.Field<string>("EmployeeCode").ToString();
-                    employee.FirstName = dr.Field<string>("FirstName").ToString();
-                    employee.LastName = dr.Field<string>("LastName").ToString();
-                    employee.Email = dr.Field<string>("Email").ToString();
-                    employee.Active = dr.Field<bool>("Active");
+                    Department department = new Department();
+                    department.Id = Convert.ToInt32(dr.Field<int>("Id"));
+                    department.Code = dr.Field<string>("Code").ToString();
+                    department.Name = dr.Field<string>("Name").ToString();
+                    department.Active = dr.Field<bool>("Active");
 
-                    employeeList.Add(employee);
+                    departmentList.Add(department);
                 }
             }
 
-            return employeeList;
+            return departmentList;
 
             #region using statement approach
 
@@ -208,16 +201,14 @@ namespace EMS.CoreLibrary.Repositories
         /// Updates the employee details of a specified Id
         /// </summary>
         /// <returns></returns>
-        public bool Update(int id, EmployeeV3 employee)
+        public bool Update(int id, Department department)
         {
             IDictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("Id", (employee.Id == 0 ? id : employee.Id));
-            parameters.Add("FirstName", employee.FirstName);
-            parameters.Add("LastName", employee.LastName);
-            parameters.Add("Email", employee.Email);
-            parameters.Add("Active", employee.Active);
+            parameters.Add("Id", (department.Id == 0 ? id : department.Id));
+            parameters.Add("Name", department.Name);
+            parameters.Add("Active", department.Active);
 
-            var result = SqlHelper.ExecuteNonQuery(_connectionString, "Employee_Update_Details", parameters);
+            var result = SqlHelper.ExecuteNonQuery(_connectionString, "Department_Update_Details", parameters);
             return result > 0;
 
             #region using statement approach
@@ -262,7 +253,7 @@ namespace EMS.CoreLibrary.Repositories
             IDictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("Id", id);
 
-            var result = SqlHelper.ExecuteNonQuery(_connectionString, "Employee_DeleteById", parameters);
+            var result = SqlHelper.ExecuteNonQuery(_connectionString, "Department_DeleteById", parameters);
             return result > 0;
 
             #region using statment approach
@@ -299,14 +290,14 @@ namespace EMS.CoreLibrary.Repositories
         /// <summary>
         /// Gets the employee details by Id
         /// </summary>
-        public bool Exists(int employeeId)
+        public bool Exists(int id)
         {
             string query = $@"SELECT TOP 1 Id
-                               FROM Employee
+                               FROM Department
                                WHERE id=@Id";
 
             IDictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("Id", employeeId);
+            parameters.Add("Id", id);
 
             var result = SqlHelper.ExecuteScalar(_connectionString, CommandType.Text, query, parameters);
             return result is not null && Convert.ToInt32(result) > 0;
@@ -339,77 +330,6 @@ namespace EMS.CoreLibrary.Repositories
                return result;
                */
             #endregion
-        }
-
-        /// <summary>
-        /// Gets the employee details by Id
-        /// </summary>
-        public bool ExistsWithEmail(string email)
-        {
-            string query = $@"SELECT TOP 1 Id
-                            FROM Employee
-                            WHERE Email=@Email";
-
-            IDictionary<string, object> parameters = new Dictionary<string, object>();
-            parameters.Add("Email", email);
-
-            var result = SqlHelper.ExecuteScalar(_connectionString, CommandType.Text, query, parameters);
-            return result is not null && Convert.ToInt32(result) > 0;
-
-            #region using statement approach
-            /*
-            bool result;
-
-            //open Connection
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                SqlCommand command = new SqlCommand();
-                command.Connection = connection;
-                command.CommandType = CommandType.Text;
-                string query = $@"SELECT TOP 1 Id
-                            FROM Employee
-                            WHERE Email=@Email";
-                command.CommandText = query;
-                command.Parameters.AddWithValue("@Email", email);
-
-                connection.Open();
-
-                var id = command.ExecuteScalar();
-                result = id is not null && Convert.ToInt32(id) > 0;
-
-
-                  //// using statement will automatically close or dispose connection while exiting.
-                  // //So explicitly closing not required when wrapped with using statement.
-            //connection.Close();
-            }
-
-            return result;
-            */
-            #endregion
-        }
-
-        public string Export(string filePath = "")
-        {
-            if (string.IsNullOrEmpty(filePath))
-            {
-                string emsDataDirectory = @"D:\EMS\Data";
-                if (!Directory.Exists(emsDataDirectory))
-                {
-                    Directory.CreateDirectory(emsDataDirectory);
-                }
-                filePath = $@"{emsDataDirectory}\AllEmployees{DateTime.Now.ToString("ddMMyyyyHHMMss")}.csv";
-            }
-
-            IEnumerable<EmployeeV3> employeeList = GetAll();
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                writer.WriteLine("Id,EmployeeCode,FirstName,LastName,Email,Active");
-                foreach (EmployeeV3 employee in employeeList)
-                {
-                    writer.WriteLine($"{employee.Id},{employee.EmployeeCode},{employee.FirstName},{employee.LastName},{employee.Email},{employee.Active}");
-                }
-            }
-            return filePath;
         }
     }
 }

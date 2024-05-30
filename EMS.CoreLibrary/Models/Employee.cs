@@ -4,10 +4,8 @@ using System.Data;
 
 namespace EMS.CoreLibrary.Models
 {
-    public class Employee
+    public class Employee : BaseModel
     {
-        public int Id { get; set; }
-
         public string? EmployeeCode { get; set; }
 
         [Required]
